@@ -9,6 +9,8 @@
   2. `66084733` — นายธนวัฒน์ ณรงค์วงศ์วัฒนา
 
 ### 🔗 ข้อมูลการ Deploy บน Ethereum Sepolia
+* **Live Web Application (GitHub Pages):** [https://ibankxd.github.io/csi301-ticketchain/](https://ibankxd.github.io/csi301-ticketchain/)
+* **GitHub Repository:** [https://github.com/IbankXD/csi301-ticketchain](https://github.com/IbankXD/csi301-ticketchain)
 * **Smart Contract Address:** `0x9D492d57D2aBBfd95aa29ceeb423c543B2b57F68`
 * **Sepolia Etherscan:** [https://sepolia.etherscan.io/address/0x9D492d57D2aBBfd95aa29ceeb423c543B2b57F68](https://sepolia.etherscan.io/address/0x9D492d57D2aBBfd95aa29ceeb423c543B2b57F68)
 * **Organizer / Admin Wallet:** `0xdf81bbc5a379dc41c25b23653ac5264a6a7d7481`
