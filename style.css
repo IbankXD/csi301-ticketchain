@@ -1,0 +1,386 @@
+:root {
+  /* Semantic Color Tokens — Live Concert Stage Dark System */
+  --bg-stage: #080812;
+  --bg-elevated: #111122;
+  --surface-card: rgba(18, 18, 36, 0.86);
+  --surface-card-solid: #141428;
+  --surface-hover: rgba(28, 28, 54, 0.92);
+  --border-subtle: rgba(148, 163, 184, 0.16);
+  --border-strong: rgba(167, 139, 250, 0.38);
+
+  --accent-violet: #7c3aed;
+  --accent-violet-light: #a78bfa;
+  --accent-rose: #f43f5e;
+  --accent-gold: #f59e0b;
+  --accent-gold-light: #fbbf24;
+  --accent-emerald: #10b981;
+  --accent-sky: #38bdf8;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --radius-card: 18px;
+  --radius-control: 12px;
+  --transition-fast: 150ms cubic-bezier(0.2, 0, 0, 1);
+  --transition-smooth: 260ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: 'Prompt', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-stage);
+  background-image:
+    radial-gradient(ellipse 65% 40% at 15% -5%, rgba(124, 58, 237, 0.22), transparent 60%),
+    radial-gradient(ellipse 50% 35% at 88% 0%, rgba(244, 63, 94, 0.14), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(245, 158, 11, 0.07), transparent 65%);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.font-display {
+  font-family: 'Bebas Neue', 'Chakra Petch', 'Prompt', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.font-tech {
+  font-family: 'Chakra Petch', 'Prompt', sans-serif;
+}
+
+.font-mono-code {
+  font-family: 'Space Mono', ui-monospace, monospace;
+}
+
+/* Accessible Focus Rings */
+:focus-visible {
+  outline: 2px solid var(--accent-violet-light);
+  outline-offset: 2px;
+}
+
+/* Elevated Glass Surface */
+.glass-card {
+  background: var(--surface-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+}
+
+/* Cinematic Concert Hero */
+.concert-hero {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  background-color: #0d0d1c;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.concert-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('./assets/concert-hero.jpg');
+  background-size: cover;
+  background-position: center 35%;
+  opacity: 0.55;
+  transform: scale(1.02);
+  transition: transform 0.6s ease;
+}
+
+.concert-hero-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(95deg, rgba(8, 8, 18, 0.96) 0%, rgba(8, 8, 18, 0.84) 48%, rgba(8, 8, 18, 0.55) 100%),
+    linear-gradient(180deg, rgba(8, 8, 18, 0.2) 0%, rgba(8, 8, 18, 0.92) 100%);
+}
+
+/* Role Switcher Pills */
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(18, 18, 36, 0.72);
+  color: var(--text-secondary);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  cursor: pointer;
+}
+
+.role-pill:hover {
+  background: rgba(34, 34, 66, 0.9);
+  color: #ffffff;
+  border-color: rgba(167, 139, 250, 0.35);
+}
+
+.role-pill.active {
+  background: linear-gradient(135deg, var(--accent-violet), #6366f1);
+  border-color: rgba(196, 181, 253, 0.55);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.4);
+}
+
+/* Sub-navigation Tabs */
+.subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 4px 10px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.subtab-btn:hover {
+  color: var(--text-primary);
+}
+
+.subtab-btn.active {
+  color: #ffffff;
+  border-bottom-color: var(--accent-rose);
+  font-weight: 600;
+}
+
+/* Tier Cards */
+.tier-card {
+  position: relative;
+  background: linear-gradient(160deg, rgba(22, 22, 44, 0.92), rgba(12, 12, 26, 0.96));
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.tier-card.tier-regular:hover,
+.tier-card.tier-regular.is-highlighted {
+  border-color: rgba(16, 185, 129, 0.65);
+  box-shadow: 0 12px 36px rgba(16, 185, 129, 0.14);
+}
+
+.tier-card.tier-vip {
+  background: linear-gradient(160deg, rgba(36, 26, 18, 0.55), rgba(14, 14, 28, 0.96));
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.tier-card.tier-vip:hover,
+.tier-card.tier-vip.is-highlighted {
+  border-color: rgba(251, 191, 36, 0.78);
+  box-shadow: 0 14px 40px rgba(245, 158, 11, 0.18);
+}
+
+/* Interactive Arena SVG Map */
+.arena-zone {
+  cursor: pointer;
+  transition: fill-opacity 180ms ease, stroke-width 180ms ease, filter 180ms ease;
+}
+
+.arena-zone:hover {
+  filter: brightness(1.25);
+}
+
+/* Physical Concert Ticket Stub Design */
+.ticket-stub {
+  position: relative;
+  background: linear-gradient(135deg, rgba(24, 24, 48, 0.96), rgba(13, 13, 28, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.ticket-stub:hover {
+  border-color: rgba(167, 139, 250, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.ticket-stub.vip-stub {
+  border-left: 5px solid var(--accent-gold);
+  background: linear-gradient(135deg, rgba(42, 30, 18, 0.72), rgba(14, 14, 28, 0.98));
+}
+
+.ticket-stub.regular-stub {
+  border-left: 5px solid var(--accent-emerald);
+}
+
+.ticket-perforation {
+  position: relative;
+  border-top: 1px dashed rgba(148, 163, 184, 0.28);
+}
+
+.ticket-perforation::before,
+.ticket-perforation::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background-color: var(--bg-stage);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.ticket-perforation::before {
+  left: -26px;
+}
+
+.ticket-perforation::after {
+  right: -26px;
+}
+
+/* Form Inputs */
+.input-field {
+  width: 100%;
+  min-height: 44px;
+  background: rgba(9, 9, 20, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: var(--text-primary);
+  border-radius: var(--radius-control);
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input-field::placeholder {
+  color: #64748b;
+}
+
+.input-field:focus {
+  border-color: var(--accent-violet-light);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.24);
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-ACTIVE {
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.status-TRANSFER_PENDING {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.status-REDEEMED {
+  background: rgba(129, 140, 248, 0.18);
+  color: #c7d2fe;
+  border: 1px solid rgba(129, 140, 248, 0.4);
+}
+
+.status-REFUNDED {
+  background: rgba(244, 63, 94, 0.16);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+.status-AVAILABLE {
+  background: rgba(56, 189, 248, 0.16);
+  color: #7dd3fc;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+/* QR Frame */
+.qr-frame {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+  background: rgba(4, 4, 12, 0.84);
+  backdrop-filter: blur(8px);
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scanner-laser {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #10b981, transparent);
+  box-shadow: 0 0 14px #10b981;
+  animation: scanMove 2.2s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+  0%, 100% { top: 16%; }
+  50% { top: 82%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #080812;
+}
+::-webkit-scrollbar-thumb {
+  background: #272744;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f6b;
+}

@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TicketChain | Live Concert Ticketing & Anti-Scalp DApp</title>
+
+  <!-- Typography Pairing (ui-ux-pro-max: Bebas Neue + Chakra Petch + Prompt + Space Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Chakra+Petch:wght@500;600;700&family=Prompt:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Vector Icons (Consistent 1.75px stroke, zero structural emojis) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- QRCode.js for Real Dynamic QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Ethers.js v6 for Ethereum Sepolia -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+  <script src="./config.js?v=7"></script>
+
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body class="antialiased selection:bg-violet-500/30 selection:text-white">
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" role="status" aria-live="polite"
+    class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- GLOBAL TOP NAVBAR -->
+  <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-[#080812]/90 backdrop-blur-xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 via-fuchsia-600 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-violet-600/30">
+          <i data-lucide="ticket" class="w-5 h-5" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <span class="font-display text-2xl tracking-wider text-white leading-none">TICKETCHAIN</span>
+            <a href="https://sepolia.etherscan.io/address/0x9D492d57D2aBBfd95aa29ceeb423c543B2b57F68" target="_blank" rel="noopener noreferrer"
+              class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/35 font-medium hover:bg-emerald-500/25 transition inline-flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Sepolia Live
+            </a>
+          </div>
+          <p class="text-[11px] text-slate-400">Live Concert Ticketing • Anti-Scalp & Dynamic QR</p>
+        </div>
+      </div>
+
+      <!-- Network & Wallet Controls -->
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <a href="https://sepolia.etherscan.io/address/0x9D492d57D2aBBfd95aa29ceeb423c543B2b57F68" target="_blank" rel="noopener noreferrer"
+          class="hidden md:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-violet-500/40 text-xs text-slate-300 font-mono-code transition"
+          title="ดู Smart Contract บน Sepolia Etherscan">
+          <i data-lucide="external-link" class="w-3.5 h-3.5 text-violet-400" aria-hidden="true"></i>
+          0x9D49...7F68
+        </a>
+
+        <div id="connectedWalletBadge" class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 font-mono-code">
+          <span id="walletStatusDot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+          <span id="connectedWalletText">Read-Only Mode</span>
+        </div>
+
+        <button id="connectWalletBtn" onclick="connectMetaMask()"
+          class="min-h-[40px] inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold transition shadow-md shadow-violet-600/25">
+          <i data-lucide="wallet" class="w-4 h-4" aria-hidden="true"></i>
+          <span id="connectBtnLabel">เชื่อมต่อ MetaMask</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ROLE SWITCHER BAR -->
+    <div class="border-t border-slate-800/70 bg-[#0d0d1c]/90">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between flex-wrap gap-2">
+        <nav aria-label="สลับบทบาทผู้ใช้งาน" class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-medium text-slate-400 mr-1 hidden sm:inline">มุมมองบทบาท:</span>
+          <button onclick="switchRole('buyer')" id="roleBtn-buyer" class="role-pill active">
+            <i data-lucide="user" class="w-4 h-4" aria-hidden="true"></i>
+            <span>ผู้ซื้อ / ผู้ถือบัตร</span>
+          </button>
+          <button onclick="switchRole('organizer')" id="roleBtn-organizer" class="role-pill">
+            <i data-lucide="sparkles" class="w-4 h-4" aria-hidden="true"></i>
+            <span>ผู้จัดงาน</span>
+          </button>
+          <button onclick="switchRole('staff')" id="roleBtn-staff" class="role-pill">
+            <i data-lucide="scan-line" class="w-4 h-4" aria-hidden="true"></i>
+            <span>เจ้าหน้าที่หน้างาน</span>
+          </button>
+          <button onclick="switchRole('admin')" id="roleBtn-admin" class="role-pill">
+            <i data-lucide="shield-check" class="w-4 h-4" aria-hidden="true"></i>
+            <span>ผู้ดูแลระบบ</span>
+          </button>
+        </nav>
+
+        <div class="flex items-center gap-3.5 text-xs text-slate-400">
+          <span class="inline-flex items-center gap-1.5">
+            <i data-lucide="coins" class="w-3.5 h-3.5 text-emerald-400" aria-hidden="true"></i>
+            <strong id="walletBalanceDisplay" class="font-mono-code text-emerald-300">-- ETH</strong>
+          </span>
+          <button onclick="syncFromBlockchain(true)"
+            class="inline-flex items-center gap-1 text-slate-400 hover:text-violet-300 transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5" aria-hidden="true"></i>
+            <span>ซิงค์ข้อมูลเชน</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-7 space-y-7">
+
+    <!-- ===================================================================== -->
+    <!-- ROLE 1: BUYER / TICKET HOLDER                                         -->
+    <!-- ===================================================================== -->
+    <section id="view-buyer" class="role-view fade-in space-y-6">
+
+      <!-- Buyer Sub-navigation -->
+      <div class="flex items-center gap-6 border-b border-slate-800/90 overflow-x-auto">
+        <button onclick="switchBuyerTab('storefront')" id="buyerTab-storefront" class="subtab-btn active">
+          <i data-lucide="music" class="w-4 h-4" aria-hidden="true"></i>
+          <span>คอนเสิร์ตที่เปิดขาย</span>
+        </button>
+        <button onclick="switchBuyerTab('myTickets')" id="buyerTab-myTickets" class="subtab-btn">
+          <i data-lucide="ticket" class="w-4 h-4" aria-hidden="true"></i>
+          <span>กระเป๋าบัตรของฉัน</span>
+          <span id="myTicketsBadge" class="px-2 py-0.5 text-[11px] rounded-full bg-violet-500/20 text-violet-300 font-semibold">0</span>
+        </button>
+        <button onclick="switchBuyerTab('incoming')" id="buyerTab-incoming" class="subtab-btn">
+          <i data-lucide="inbox" class="w-4 h-4" aria-hidden="true"></i>
+          <span>คำขอโอนที่รอรับ</span>
+          <span id="incomingBadge" class="px-2 py-0.5 text-[11px] rounded-full bg-amber-500/20 text-amber-300 font-semibold">0</span>
+        </button>
+        <button onclick="switchBuyerTab('phoneLookup')" id="buyerTab-phoneLookup" class="subtab-btn">
+          <i data-lucide="smartphone" class="w-4 h-4" aria-hidden="true"></i>
+          <span>ค้นหาบัตรด้วยเบอร์โทร</span>
+        </button>
+      </div>
+
+      <!-- SUBTAB 1.1: STOREFRONT -->
+      <div id="buyerPane-storefront" class="buyer-pane space-y-6">
+
+        <!-- Multi-event selector -->
+        <div id="eventSelectorRow" class="flex items-center gap-2 flex-wrap"></div>
+
+        <!-- CINEMATIC CONCERT HERO -->
+        <div class="concert-hero">
+          <div class="concert-hero-bg" aria-hidden="true"></div>
+          <div class="concert-hero-scrim" aria-hidden="true"></div>
+
+          <div class="relative z-10 p-6 sm:p-9 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Event Details (Left 7 cols) -->
+            <div class="lg:col-span-7 space-y-5">
+              <div class="flex flex-wrap items-center gap-2.5">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs font-semibold tracking-wide">
+                  <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                  LIVE ON SALE NOW
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-400/30 text-violet-200 text-xs font-medium">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                  Smart Contract Verified
+                </span>
+              </div>
+
+              <div class="space-y-1.5">
+                <p class="font-tech text-xs sm:text-sm uppercase tracking-[0.22em] text-amber-300 font-semibold">
+                  WORLD TOUR • BANGKOK EXCLUSIVE
+                </p>
+                <h1 id="heroEventName" class="font-display text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.02] tracking-wide">
+                  ROCK REVOLUTION 2026
+                </h1>
+              </div>
+
+              <div class="flex flex-wrap gap-3 text-sm text-slate-200">
+                <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/70 border border-slate-700/60">
+                  <i data-lucide="calendar" class="w-4 h-4 text-rose-400" aria-hidden="true"></i>
+                  <span id="heroEventDate">25 ธันวาคม 2026 • ประตูเปิด 17:00 น.</span>
+                </div>
+                <div class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-950/70 border border-slate-700/60">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-violet-400" aria-hidden="true"></i>
+                  <span id="heroEventVenue">Impact Arena เมืองทองธานี</span>
+                </div>
+              </div>
+
+              <!-- Key Safeguards Strip -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs text-slate-300">
+                <div class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <i data-lucide="user-check" class="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true"></i>
+                  <span>จำกัด 1–4 ใบ / กระเป๋า</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <i data-lucide="qr-code" class="w-4 h-4 text-violet-400 shrink-0" aria-hidden="true"></i>
+                  <span>Dynamic QR เปลี่ยนทุก 60 วิ</span>
+                </div>
+                <div class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <i data-lucide="refresh-cw" class="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true"></i>
+                  <span>ขายคืนผู้จัดรับเงินคืน 90%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Interactive SVG Arena Stage Map (Right 5 cols) -->
+            <div class="lg:col-span-5">
+              <div class="rounded-2xl bg-[#0a0a18]/85 border border-slate-700/60 p-4 sm:p-5 backdrop-blur-md space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-slate-200 inline-flex items-center gap-1.5">
+                    <i data-lucide="map" class="w-4 h-4 text-violet-400" aria-hidden="true"></i>
+                    แผนผังเวทีและโซนบัตร
+                  </span>
+                  <span class="text-[11px] text-slate-400">คลิกโซนเพื่อเลือกบัตร</span>
+                </div>
+
+                <svg viewBox="0 0 360 220" class="w-full h-auto" role="img" aria-label="แผนผังโซนเวทีคอนเสิร์ต VIP และ Regular">
+                  <defs>
+                    <linearGradient id="stageGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#7c3aed" />
+                      <stop offset="50%" stop-color="#f43f5e" />
+                      <stop offset="100%" stop-color="#7c3aed" />
+                    </linearGradient>
+                    <linearGradient id="vipGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.34" />
+                      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.12" />
+                    </linearGradient>
+                    <linearGradient id="regGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#10b981" stop-opacity="0.28" />
+                      <stop offset="100%" stop-color="#10b981" stop-opacity="0.09" />
+                    </linearGradient>
+                  </defs>
+
+                  <!-- Main Stage -->
+                  <path d="M 60 16 L 300 16 L 280 54 Q 180 68 80 54 Z" fill="url(#stageGrad)" fill-opacity="0.9" stroke="#e9d5ff" stroke-width="1.2" />
+                  <text x="180" y="40" text-anchor="middle" fill="#ffffff" font-family="Chakra Petch, sans-serif" font-size="13" font-weight="700" letter-spacing="2">MAIN STAGE</text>
+
+                  <!-- Catwalk -->
+                  <rect x="166" y="56" width="28" height="36" rx="4" fill="#a855f7" fill-opacity="0.7" stroke="#e9d5ff" stroke-width="1" />
+
+                  <!-- VIP Zone (Interactive) -->
+                  <g class="arena-zone" onclick="highlightTierCard('vip')" tabindex="0" role="button" aria-label="เลือกโซน VIP">
+                    <path d="M 48 66 Q 180 82 312 66 L 326 122 Q 180 136 34 122 Z" fill="url(#vipGrad)" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5 3" />
+                    <text x="180" y="108" text-anchor="middle" fill="#fde68a" font-family="Prompt, sans-serif" font-size="12" font-weight="700">VIP PIT • ชิดขอบเวที + Fast Lane</text>
+                  </g>
+
+                  <!-- Regular Zone (Interactive) -->
+                  <g class="arena-zone" onclick="highlightTierCard('regular')" tabindex="0" role="button" aria-label="เลือกโซน Regular">
+                    <path d="M 32 132 Q 180 146 328 132 L 344 202 Q 180 216 16 202 Z" fill="url(#regGrad)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="5 3" />
+                    <text x="180" y="176" text-anchor="middle" fill="#a7f3d0" font-family="Prompt, sans-serif" font-size="12" font-weight="700">REGULAR ARENA • โซนมาตรฐาน</text>
+                  </g>
+                </svg>
+
+                <div class="flex items-center justify-center gap-5 text-[11px] text-slate-300">
+                  <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>VIP Zone</span>
+                  <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>Regular Zone</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUOTA STATUS BAR -->
+        <div class="glass-card px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5 text-slate-300">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-violet-400 shrink-0" aria-hidden="true"></i>
+            <span>โควตาป้องกันตั๋วผีสำหรับกระเป๋า <code id="quotaWalletShort" class="font-mono-code text-violet-300 bg-violet-500/10 px-1.5 py-0.5 rounded">0x6c6B...75b</code></span>
+          </div>
+          <div id="quotaStatusText" class="font-semibold text-emerald-400">
+            ซื้อไปแล้ว 0 / 4 ใบ (ยังซื้อได้อีก 4 ใบ)
+          </div>
+        </div>
+
+        <!-- TICKET TIER SELECTION CARDS -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- REGULAR TIER CARD -->
+          <article id="card-tier-regular" class="tier-card tier-regular p-6 sm:p-7 flex flex-col justify-between space-y-6">
+            <div class="space-y-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                    <i data-lucide="disc-3" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                    Standard Admission
+                  </span>
+                  <h2 class="font-tech text-2xl font-bold text-white mt-1">Regular Arena</h2>
+                </div>
+                <div class="text-right">
+                  <div class="font-tech text-2xl font-bold text-emerald-400"><span id="regPriceEth">0.005</span> <span class="text-base">ETH</span></div>
+                  <div class="text-xs text-slate-400">≈ ฿<span id="regPriceThb">500</span> / ใบ</div>
+                </div>
+              </div>
+
+              <ul class="space-y-2 text-sm text-slate-300">
+                <li class="flex items-center gap-2.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true"></i>
+                  <span>สิทธิ์เข้าชมคอนเสิร์ตโซนมาตรฐานเต็มรูปแบบ</span>
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true"></i>
+                  <span>Dynamic QR Code เปลี่ยนรหัสทุก 60 วินาที</span>
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true"></i>
+                  <span>โอนให้เพื่อน 2 ขั้นตอน หรือขายคืนผู้จัดได้ (รับคืน 90%)</span>
+                </li>
+              </ul>
+
+              <!-- Real-time Stock Progress -->
+              <div class="space-y-2 pt-1">
+                <div class="flex justify-between text-xs">
+                  <span class="text-slate-400">สต็อกคงเหลือบน Smart Contract</span>
+                  <span id="regStockLabel" class="font-semibold text-emerald-300">กำลังโหลด...</span>
+                </div>
+                <div class="w-full h-2.5 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+                  <div id="regStockBar" class="h-full bg-gradient-to-r from-emerald-600 to-teal-400 rounded-full transition-all duration-300" style="width: 47%"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantity & CTA -->
+            <div class="pt-5 border-t border-slate-800/80 flex items-center justify-between gap-3">
+              <div class="inline-flex items-center bg-slate-950 border border-slate-700/80 rounded-xl p-1">
+                <button onclick="adjustQty('regular', -1)" aria-label="ลดจำนวนบัตร Regular"
+                  class="w-10 h-10 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center justify-center transition">
+                  <i data-lucide="minus" class="w-4 h-4" aria-hidden="true"></i>
+                </button>
+                <span id="qty-regular" class="w-9 text-center font-tech font-bold text-white text-base">1</span>
+                <button onclick="adjustQty('regular', 1)" aria-label="เพิ่มจำนวนบัตร Regular"
+                  class="w-10 h-10 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center justify-center transition">
+                  <i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>
+                </button>
+              </div>
+              <button onclick="openCheckoutModal('Regular')"
+                class="flex-1 min-h-[48px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition shadow-lg shadow-emerald-600/25">
+                <i data-lucide="shopping-bag" class="w-4 h-4" aria-hidden="true"></i>
+                <span>เลือกซื้อบัตร Regular</span>
+              </button>
+            </div>
+          </article>
+
+          <!-- VIP TIER CARD -->
+          <article id="card-tier-vip" class="tier-card tier-vip p-6 sm:p-7 flex flex-col justify-between space-y-6">
+            <div class="space-y-4">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                    <i data-lucide="crown" class="w-3.5 h-3.5" aria-hidden="true"></i>
+                    Exclusive Front-Row
+                  </span>
+                  <h2 class="font-tech text-2xl font-bold text-white mt-1">VIP Pit Zone</h2>
+                </div>
+                <div class="text-right">
+                  <div class="font-tech text-2xl font-bold text-amber-400"><span id="vipPriceEth">0.012</span> <span class="text-base">ETH</span></div>
+                  <div class="text-xs text-slate-400">≈ ฿<span id="vipPriceThb">1,200</span> / ใบ</div>
+                </div>
+              </div>
+
+              <ul class="space-y-2 text-sm text-slate-200">
+                <li class="flex items-center gap-2.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true"></i>
+                  <span>โซนชิดติดขอบเวที ใกล้ชิดศิลปินและแสงสีเสียงเต็มตา</span>
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true"></i>
+                  <span>ช่องทางเข้างานพิเศษ Fast Lane ไม่ต้องรอคิวหน้าประตู</span>
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true"></i>
+                  <span>ของที่ระลึก Exclusive Collectible + สิทธิ์โอน/ขายคืน 90%</span>
+                </li>
+              </ul>
+
+              <!-- Real-time Stock Progress -->
+              <div class="space-y-2 pt-1">
+                <div class="flex justify-between text-xs">
+                  <span class="text-amber-300/90 inline-flex items-center gap-1 font-medium">
+                    <i data-lucide="flame" class="w-3.5 h-3.5 text-rose-400" aria-hidden="true"></i>
+                    จำนวนจำกัด • สต็อกบนเชน
+                  </span>
+                  <span id="vipStockLabel" class="font-semibold text-amber-300">กำลังโหลด...</span>
+                </div>
+                <div class="w-full h-2.5 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+                  <div id="vipStockBar" class="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full transition-all duration-300" style="width: 36%"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantity & CTA -->
+            <div class="pt-5 border-t border-amber-500/20 flex items-center justify-between gap-3">
+              <div class="inline-flex items-center bg-slate-950 border border-amber-500/35 rounded-xl p-1">
+                <button onclick="adjustQty('vip', -1)" aria-label="ลดจำนวนบัตร VIP"
+                  class="w-10 h-10 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center justify-center transition">
+                  <i data-lucide="minus" class="w-4 h-4" aria-hidden="true"></i>
+                </button>
+                <span id="qty-vip" class="w-9 text-center font-tech font-bold text-white text-base">1</span>
+                <button onclick="adjustQty('vip', 1)" aria-label="เพิ่มจำนวนบัตร VIP"
+                  class="w-10 h-10 rounded-lg hover:bg-slate-800 text-slate-200 flex items-center justify-center transition">
+                  <i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>
+                </button>
+              </div>
+              <button onclick="openCheckoutModal('VIP')"
+                class="flex-1 min-h-[48px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-sm font-bold transition shadow-lg shadow-amber-500/25">
+                <i data-lucide="crown" class="w-4 h-4" aria-hidden="true"></i>
+                <span>เลือกซื้อบัตร VIP</span>
+              </button>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <!-- SUBTAB 1.2: MY TICKETS -->
+      <div id="buyerPane-myTickets" class="buyer-pane hidden space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-xl font-bold text-white">กระเป๋าบัตรของฉัน</h2>
+            <p class="text-xs text-slate-400 mt-0.5">จัดการบัตรคอนเสิร์ตทั้งหมดในกระเป๋าปัจจุบัน เปิด Dynamic QR เข้างาน โอนให้เพื่อน หรือขายคืนผู้จัด</p>
+          </div>
+        </div>
+        <div id="myTicketsList" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+      </div>
+
+      <!-- SUBTAB 1.3: INCOMING TRANSFERS -->
+      <div id="buyerPane-incoming" class="buyer-pane hidden space-y-4">
+        <div>
+          <h2 class="text-xl font-bold text-white">คำขอโอนบัตรที่รอการยืนยัน</h2>
+          <p class="text-xs text-slate-400 mt-0.5">เมื่อคุณกดยอมรับ สิทธิ์และ QR ของเจ้าของเดิมจะถูกยกเลิกทันที และบัตรจะเข้าสู่กระเป๋าของคุณ</p>
+        </div>
+        <div id="incomingTransfersList" class="space-y-3"></div>
+      </div>
+
+      <!-- SUBTAB 1.4: PHONE LOOKUP -->
+      <div id="buyerPane-phoneLookup" class="buyer-pane hidden space-y-5">
+        <div class="glass-card p-6 max-w-2xl space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center text-violet-300 shrink-0">
+              <i data-lucide="smartphone" class="w-5 h-5" aria-hidden="true"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-white">ค้นหา / กู้คืนบัตรด้วยเบอร์โทรศัพท์</h2>
+              <p class="text-xs text-slate-400 mt-1">
+                สำหรับลูกค้าที่ซื้อผ่านการสแกนโอน <strong class="text-slate-200">PromptPay (ไม่มี MetaMask)</strong> เมื่อถึงวันงานหรือเปลี่ยนเครื่อง เพียงกรอกเบอร์โทรศัพท์ที่ใช้ซื้อ ระบบจะดึงบัตรและ Dynamic QR กลับมาให้ทันที
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <label for="phoneLookupInput" class="sr-only">เบอร์โทรศัพท์</label>
+            <input id="phoneLookupInput" type="tel" placeholder="กรอกเบอร์โทรศัพท์ เช่น 0812345678" class="input-field flex-1" />
+            <button onclick="lookupTicketsByPhone()"
+              class="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold whitespace-nowrap transition">
+              <i data-lucide="search" class="w-4 h-4" aria-hidden="true"></i>
+              <span>ค้นหาบัตร</span>
+            </button>
+          </div>
+          <div class="text-xs text-slate-400">
+            ทดลองค้นหาเบอร์ตัวอย่างในระบบ:
+            <button onclick="document.getElementById('phoneLookupInput').value='0812345678'; lookupTicketsByPhone();"
+              class="text-violet-300 hover:text-violet-200 underline font-mono-code ml-1">0812345678</button>
+          </div>
+        </div>
+        <div id="phoneLookupResults" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+      </div>
+
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ROLE 2: EVENT ORGANIZER                                               -->
+    <!-- ===================================================================== -->
+    <section id="view-organizer" class="role-view hidden fade-in space-y-6">
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-5 space-y-1">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>รายได้สะสมในสัญญา</span>
+            <i data-lucide="wallet" class="w-4 h-4 text-emerald-400" aria-hidden="true"></i>
+          </div>
+          <div id="orgRevenueEth" class="font-tech text-2xl font-bold text-emerald-400">0.000 ETH</div>
+          <div id="orgRevenueThb" class="text-xs text-slate-400">≈ ฿0</div>
+        </div>
+        <div class="glass-card p-5 space-y-1">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>บัตรที่ขายออกทั้งหมด</span>
+            <i data-lucide="ticket" class="w-4 h-4 text-violet-400" aria-hidden="true"></i>
+          </div>
+          <div id="orgSoldCount" class="font-tech text-2xl font-bold text-white">0 ใบ</div>
+          <div class="text-xs text-slate-400">รวม Regular & VIP</div>
+        </div>
+        <div class="glass-card p-5 space-y-1">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>สต็อกคงเหลือพร้อมขาย</span>
+            <i data-lucide="layers" class="w-4 h-4 text-sky-400" aria-hidden="true"></i>
+          </div>
+          <div id="orgRemainingCount" class="font-tech text-2xl font-bold text-sky-400">0 ใบ</div>
+          <div class="text-xs text-slate-400">ป้องกันขายเกิน 100%</div>
+        </div>
+        <div class="glass-card p-5 space-y-1">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span>บัตรรับซื้อคืน (รอ Restock)</span>
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-amber-400" aria-hidden="true"></i>
+          </div>
+          <div id="orgRefundedCount" class="font-tech text-2xl font-bold text-amber-400">0 ใบ</div>
+          <div class="text-xs text-slate-400">พร้อมนำกลับมาขายใหม่</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Create Event Form -->
+        <div class="glass-card p-6 space-y-4">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="plus-circle" class="w-5 h-5 text-violet-400" aria-hidden="true"></i>
+            <div>
+              <h2 class="text-lg font-bold text-white">สร้างงานคอนเสิร์ตใหม่</h2>
+              <p class="text-xs text-slate-400">กำหนดสต็อกและราคาบัตร Regular / VIP บน Smart Contract</p>
+            </div>
+          </div>
+
+          <form onsubmit="handleCreateEvent(event)" class="space-y-3.5">
+            <div>
+              <label for="newEventName" class="block text-xs text-slate-300 mb-1">ชื่องานคอนเสิร์ต</label>
+              <input id="newEventName" type="text" required placeholder="เช่น NEON PULSE FESTIVAL 2026" class="input-field" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label for="newEventDate" class="block text-xs text-slate-300 mb-1">วันที่จัดงาน</label>
+                <input id="newEventDate" type="text" required placeholder="15 เมษายน 2026 • 18:00 น." class="input-field" />
+              </div>
+              <div>
+                <label for="newEventVenue" class="block text-xs text-slate-300 mb-1">สถานที่</label>
+                <input id="newEventVenue" type="text" required placeholder="ราชมังคลากีฬาสถาน" class="input-field" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="newRegSupply" class="block text-xs text-emerald-300 mb-1">สต็อก Regular (ใบ)</label>
+                <input id="newRegSupply" type="number" min="1" value="200" required class="input-field" />
+              </div>
+              <div>
+                <label for="newRegPrice" class="block text-xs text-emerald-300 mb-1">ราคา Regular (ETH)</label>
+                <input id="newRegPrice" type="number" step="0.001" min="0.001" value="0.005" required class="input-field" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label for="newVipSupply" class="block text-xs text-amber-300 mb-1">สต็อก VIP (ใบ)</label>
+                <input id="newVipSupply" type="number" min="1" value="50" required class="input-field" />
+              </div>
+              <div>
+                <label for="newVipPrice" class="block text-xs text-amber-300 mb-1">ราคา VIP (ETH)</label>
+                <input id="newVipPrice" type="number" step="0.001" min="0.001" value="0.012" required class="input-field" />
+              </div>
+            </div>
+            <button type="submit"
+              class="w-full min-h-[46px] inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition shadow-lg shadow-violet-600/25">
+              <i data-lucide="rocket" class="w-4 h-4" aria-hidden="true"></i>
+              <span>สร้างงานและเปิดขายบัตรทันที</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Restock, PromptPay Approval & Revenue -->
+        <div class="space-y-6">
+          <div class="glass-card p-6 space-y-4 border-sky-500/25">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="qr-code" class="w-5 h-5 text-sky-400" aria-hidden="true"></i>
+                <div>
+                  <h2 class="text-lg font-bold text-white">คิวอนุมัติยอดโอน PromptPay</h2>
+                  <p class="text-xs text-slate-400">ลูกค้าที่โอนผ่าน PromptPay (ไม่มี MetaMask) จะมารอให้ผู้จัดกดออกบัตรขึ้นเชนที่นี่</p>
+                </div>
+              </div>
+              <span id="promptpayPendingBadge" class="px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 text-xs font-semibold">0</span>
+            </div>
+            <div id="promptpayQueueList" class="space-y-2.5 max-h-60 overflow-y-auto pr-1"></div>
+          </div>
+
+          <div class="glass-card p-6 space-y-4">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="refresh-cw" class="w-5 h-5 text-sky-400" aria-hidden="true"></i>
+              <div>
+                <h2 class="text-lg font-bold text-white">คิวบัตรที่รับซื้อคืน (Restock Queue)</h2>
+                <p class="text-xs text-slate-400">บัตรที่ลูกค้าขายคืน (ได้คืน 90%) พร้อมกดนำกลับเข้าสต็อกขายใหม่</p>
+              </div>
+            </div>
+            <div id="restockList" class="space-y-2.5 max-h-64 overflow-y-auto pr-1"></div>
+          </div>
+
+          <div class="glass-card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-emerald-500/30">
+            <div>
+              <h2 class="text-base font-bold text-white">ถอนเงินรายได้เข้ากระเป๋าผู้จัด</h2>
+              <p class="text-xs text-slate-400 mt-1">ยอดพร้อมถอน: <strong id="withdrawableEth" class="font-mono-code text-emerald-400">0.000 ETH</strong> (รวมค่าธรรมเนียมคืนบัตร 10%)</p>
+            </div>
+            <button onclick="handleWithdrawRevenue()"
+              class="min-h-[44px] inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold whitespace-nowrap transition">
+              <i data-lucide="arrow-down-to-line" class="w-4 h-4" aria-hidden="true"></i>
+              <span>ถอนรายได้</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ROLE 3: GATE STAFF / SCANNER                                          -->
+    <!-- ===================================================================== -->
+    <section id="view-staff" class="role-view hidden fade-in space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Dynamic QR Check-in Station -->
+        <div class="glass-card p-6 space-y-5">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="scan-line" class="w-5 h-5 text-emerald-400" aria-hidden="true"></i>
+            <div>
+              <h2 class="text-lg font-bold text-white">จุดตรวจบัตรหน้าประตู (Gate A)</h2>
+              <p class="text-xs text-slate-400">ตรวจลายเซ็น อายุ QR 60 วินาที เจ้าของปัจจุบัน และป้องกันการสแกนซ้ำ</p>
+            </div>
+          </div>
+
+          <div class="relative rounded-2xl bg-[#070710] border-2 border-dashed border-slate-700 h-44 flex flex-col items-center justify-center overflow-hidden">
+            <div class="scanner-laser"></div>
+            <i data-lucide="camera" class="w-8 h-8 text-emerald-400 mb-2" aria-hidden="true"></i>
+            <p class="text-xs text-slate-200 font-medium">เครื่องสแกน Dynamic QR หน้าประตู</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">วางรหัส QR จากหน้าผู้ซื้อ หรือเลือกปุ่มทดสอบด้านล่าง</p>
+          </div>
+
+          <div class="space-y-2">
+            <label for="qrScanInput" class="block text-xs text-slate-300">รหัส Dynamic QR Payload:</label>
+            <div class="flex gap-2">
+              <input id="qrScanInput" type="text" placeholder="TCQR|TK-0001|1795000000|SIG..." class="input-field flex-1 font-mono-code text-xs" />
+              <button onclick="verifyAndScanQR()"
+                class="min-h-[44px] inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold whitespace-nowrap transition">
+                <i data-lucide="check-circle" class="w-4 h-4" aria-hidden="true"></i>
+                <span>ตรวจสอบ</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800 space-y-2">
+            <div class="text-xs text-slate-400">ปุ่มลัดทดสอบสแกน:</div>
+            <div id="quickScanButtons" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div id="scanResultBox" class="hidden rounded-xl p-4 space-y-2"></div>
+        </div>
+
+        <!-- Helpdesk Emergency Override -->
+        <div class="glass-card p-6 space-y-5 border-t-4 border-t-amber-500">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="life-buoy" class="w-5 h-5 text-amber-400" aria-hidden="true"></i>
+            <div>
+              <h2 class="text-lg font-bold text-white">จุดช่วยเหลือหน้างาน (Helpdesk Override)</h2>
+              <p class="text-xs text-slate-400">กรณีโทรศัพท์แบตหมดหรือเปิด QR ไม่ได้ ค้นหาบัตรและออกสิทธิ์เข้างานฉุกเฉินพร้อมบันทึก Audit</p>
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <label for="helpdeskSearchInput" class="sr-only">ค้นหาบัตร</label>
+            <input id="helpdeskSearchInput" type="text" placeholder="ค้นหาด้วย รหัสบัตร (TK-0001), เบอร์โทร, หรือ Wallet" class="input-field flex-1" />
+            <button onclick="searchHelpdeskTicket()"
+              class="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-sm font-bold whitespace-nowrap transition">
+              <i data-lucide="search" class="w-4 h-4" aria-hidden="true"></i>
+              <span>ค้นหา</span>
+            </button>
+          </div>
+
+          <div id="helpdeskResultArea" class="space-y-3">
+            <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-4 text-xs text-slate-400 text-center">
+              ลองค้นหารหัสบัตร <strong class="text-slate-200 font-mono-code">TK-0001</strong> หรือเบอร์โทร <strong class="text-slate-200 font-mono-code">0812345678</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ROLE 4: SYSTEM ADMIN & AUDIT LOG                                      -->
+    <!-- ===================================================================== -->
+    <section id="view-admin" class="role-view hidden fade-in space-y-5">
+      <div class="glass-card p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="shield-check" class="w-5 h-5 text-violet-400" aria-hidden="true"></i>
+            <div>
+              <h2 class="text-lg font-bold text-white">บันทึกความโปร่งใสและประวัติธุรกรรม (On-Chain Audit Log)</h2>
+              <p class="text-xs text-slate-400">ตรวจสอบย้อนหลังได้ทุกเหตุการณ์ (Zero-PII — ไม่เก็บข้อมูลส่วนตัวบนบล็อกเชน)</p>
+            </div>
+          </div>
+          <span id="auditCountBadge" class="px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs font-semibold">
+            0 รายการ
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400">
+                <th class="py-3 px-3">เวลา</th>
+                <th class="py-3 px-3">กิจกรรม</th>
+                <th class="py-3 px-3">รหัสบัตร</th>
+                <th class="py-3 px-3">รายละเอียด / ผู้ทำรายการ</th>
+                <th class="py-3 px-3">Tx Hash</th>
+              </tr>
+            </thead>
+            <tbody id="auditLogTableBody" class="divide-y divide-slate-800/70 text-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="max-w-7xl mx-auto px-4 sm:px-6 mt-12 pb-8 pt-6 border-t border-slate-800/80 text-center space-y-1">
+    <p class="text-sm font-bold text-slate-200">กลุ่มผู้พัฒนา: DoubleFatZ</p>
+    <p class="text-xs text-slate-400">66026188 นายศิวัฒน์ แก้วหนองสังข์ &nbsp;|&nbsp; 66084733 นายธนวัฒน์ ณรงค์วงศ์วัฒนา</p>
+    <p class="text-[11px] text-slate-500 pt-1">TicketChain — CSI301 Blockchain & Smart Contract Technologies</p>
+  </footer>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 1: HYBRID CHECKOUT                                                -->
+  <!-- ======================================================================= -->
+  <div id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="checkoutModalTitle"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+    <div class="glass-card max-w-lg w-full p-6 space-y-5 fade-in relative border-slate-700">
+      <button onclick="closeModal('checkoutModal')" aria-label="ปิดหน้าต่างชำระเงิน"
+        class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center absolute top-4 right-4 transition">
+        <i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i>
+      </button>
+
+      <div>
+        <h3 id="checkoutModalTitle" class="text-lg font-bold text-white">ชำระเงินค่าบัตรคอนเสิร์ต</h3>
+        <p id="checkoutSummaryText" class="text-xs text-slate-400 mt-1">Regular Zone x 1 ใบ</p>
+      </div>
+
+      <!-- Payment Tabs -->
+      <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800">
+        <button onclick="switchCheckoutTab('metamask')" id="payTab-metamask"
+          class="min-h-[40px] inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold bg-violet-600 text-white transition">
+          <i data-lucide="wallet" class="w-3.5 h-3.5" aria-hidden="true"></i>
+          <span>MetaMask (ETH)</span>
+        </button>
+        <button onclick="switchCheckoutTab('promptpay')" id="payTab-promptpay"
+          class="min-h-[40px] inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+          <i data-lucide="qr-code" class="w-3.5 h-3.5" aria-hidden="true"></i>
+          <span>PromptPay (โอนเงิน)</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: MetaMask -->
+      <div id="payPane-metamask" class="space-y-4">
+        <div class="rounded-xl bg-slate-950/90 border border-slate-800 p-4 space-y-2.5 text-xs">
+          <div class="flex justify-between">
+            <span class="text-slate-400">กระเป๋าที่ชำระเงิน</span>
+            <span id="checkoutWalletAddr" class="font-mono-code text-violet-300">0x6c6B...75b</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">ค่าบัตรรวม</span>
+            <span id="checkoutTotalEth" class="font-bold text-white">0.005 ETH</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">ค่า Gas โดยประมาณ</span>
+            <span class="text-slate-300">≈ 0.0003 ETH</span>
+          </div>
+          <div class="pt-2.5 border-t border-slate-800 flex justify-between text-sm font-bold">
+            <span class="text-slate-200">ยอดสุทธิ</span>
+            <span id="checkoutGrandTotalEth" class="font-tech text-emerald-400">0.0053 ETH</span>
+          </div>
+        </div>
+        <button onclick="confirmMetaMaskPurchase()"
+          class="w-full min-h-[48px] inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-bold transition shadow-lg shadow-violet-600/30">
+          <i data-lucide="check-circle-2" class="w-4 h-4" aria-hidden="true"></i>
+          <span>ยืนยันชำระเงินผ่าน MetaMask</span>
+        </button>
+      </div>
+
+      <!-- Tab 2: PromptPay -->
+      <div id="payPane-promptpay" class="hidden space-y-4">
+        <div class="rounded-xl bg-slate-950/90 border border-slate-800 p-4 text-center space-y-3">
+          <div class="text-xs font-semibold text-sky-300">สแกน QR พร้อมเพย์ (ระบบจำลอง Web2.5)</div>
+          <div id="promptpayQrBox" class="qr-frame mx-auto"></div>
+          <div class="font-tech text-xl font-bold text-emerald-400" id="checkoutTotalThb">฿500.00</div>
+          <div class="text-[11px] text-slate-400">บัญชีผู้จัดงาน: TicketChain Escrow (PromptPay 099-999-9999)</div>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="promptpayPhoneInput" class="block text-xs text-slate-300">เบอร์โทรศัพท์สำหรับผูกบัตร (ใช้เปิดบัตรในวันงาน):</label>
+          <input id="promptpayPhoneInput" type="tel" placeholder="เช่น 0812345678" class="input-field" />
+        </div>
+
+        <button onclick="confirmPromptPayPurchase()"
+          class="w-full min-h-[48px] inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition shadow-lg shadow-emerald-600/25">
+          <i data-lucide="check-circle-2" class="w-4 h-4" aria-hidden="true"></i>
+          <span>ยืนยันโอนเงินและออกบัตรทันที</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 2: DYNAMIC QR CODE (60s AUTO-REFRESH)                             -->
+  <!-- ======================================================================= -->
+  <div id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrModalTitle"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+    <div class="glass-card max-w-md w-full p-6 text-center space-y-4 fade-in relative border-violet-500/40">
+      <button onclick="closeQrModal()" aria-label="ปิดหน้าต่าง QR"
+        class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center absolute top-4 right-4 transition">
+        <i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i>
+      </button>
+
+      <div>
+        <span id="qrModalTierBadge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300">VIP ZONE</span>
+        <h3 id="qrModalTitle" class="font-tech text-xl font-bold text-white mt-2">Dynamic Entry Pass</h3>
+        <p id="qrModalSubtitle" class="text-xs text-slate-400">ROCK REVOLUTION 2026 • #TK-0001</p>
+      </div>
+
+      <div id="dynamicQrContainer" class="qr-frame mx-auto"></div>
+
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-xs">
+          <span class="text-slate-400 inline-flex items-center gap-1">
+            <i data-lucide="clock" class="w-3.5 h-3.5" aria-hidden="true"></i>
+            รหัสจะเปลี่ยนใหม่ใน
+          </span>
+          <span id="qrCountdownText" class="font-mono-code font-bold text-emerald-400">60 วินาที</span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+          <div id="qrCountdownBar" class="h-full bg-emerald-500 transition-all duration-1000" style="width: 100%"></div>
+        </div>
+      </div>
+
+      <div class="rounded-xl bg-slate-950/90 border border-slate-800 p-3 text-left">
+        <div class="text-[10px] text-slate-400 mb-1">Dynamic Payload (คัดลอกไปทดสอบสแกนในหน้าเจ้าหน้าที่):</div>
+        <div class="flex items-center gap-2">
+          <code id="qrPayloadPreview" class="font-mono-code text-[11px] text-violet-300 truncate flex-1">TCQR|...</code>
+          <button onclick="copyCurrentQrPayload()"
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-white font-medium transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5" aria-hidden="true"></i>
+            <span>คัดลอก</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-amber-300/90">
+        ห้ามแคปภาพหน้าจอส่งต่อ — ระบบจะปฏิเสธ QR ที่หมดอายุหรือถูกโอนสิทธิ์แล้วโดยอัตโนมัติ
+      </p>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 3: 2-STEP TRANSFER                                                -->
+  <!-- ======================================================================= -->
+  <div id="transferModal" role="dialog" aria-modal="true" aria-labelledby="transferModalTitle"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+    <div class="glass-card max-w-md w-full p-6 space-y-4 fade-in relative border-slate-700">
+      <button onclick="closeModal('transferModal')" aria-label="ปิดหน้าต่างโอนบัตร"
+        class="w-9 h-9 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center absolute top-4 right-4 transition">
+        <i data-lucide="x" class="w-5 h-5" aria-hidden="true"></i>
+      </button>
+      <div>
+        <h3 id="transferModalTitle" class="text-lg font-bold text-white">โอนบัตรให้เพื่อน (2-Step Transfer)</h3>
+        <p id="transferModalTicketInfo" class="text-xs text-slate-400 mt-1">บัตร #TK-0001</p>
+      </div>
+      <div class="space-y-2">
+        <label for="transferRecipientInput" class="block text-xs text-slate-300">ระบุ Wallet Address ของผู้รับ:</label>
+        <input id="transferRecipientInput" type="text" placeholder="0x..." class="input-field font-mono-code text-xs" />
+        <div class="text-[11px] text-slate-400">
+          คลิกเพื่อใส่กระเป๋าเพื่อนตัวอย่าง:
+          <button onclick="document.getElementById('transferRecipientInput').value='0x896DE11DF9F540b9d04Fc1A51A9BCfbC1E568DFB'"
+            class="text-violet-300 hover:underline font-mono-code ml-1">0x896D...DFB</button>
+        </div>
+      </div>
+      <p class="text-xs text-amber-200/90 bg-amber-500/10 border border-amber-500/25 rounded-xl p-3">
+        ระบบจะเปลี่ยนสถานะเป็น <strong>TRANSFER_PENDING</strong> จนกว่าเพื่อนจะกดยอมรับ เมื่อเพื่อนรับบัตรแล้ว QR เดิมของคุณจะถูกยกเลิกทันที
+      </p>
+      <button onclick="confirmInitiateTransfer()"
+        class="w-full min-h-[46px] inline-flex items-center justify-center gap-2 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition">
+        <i data-lucide="send" class="w-4 h-4" aria-hidden="true"></i>
+        <span>ส่งคำขอโอนบัตร</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="./app.js?v=7"></script>
+</body>
+</html>
